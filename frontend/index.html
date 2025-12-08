@@ -52,6 +52,13 @@
             <button onclick="getUsers()">Get Users</button>
         </div>
 
+        <div style="margin-top: 20px;">
+            <h3>Add user</h3>
+            <input id="name" placeholder="Name" style="padding:10px; margin:5px; width: 200px;">
+            <input id="email" placeholder="Email" style="padding:10px; margin:5px; width: 250px;">
+            <button onclick="addUser()">Add User</button>
+        </div>
+
         <div id="result"></div>
     </div>
 
@@ -89,6 +96,44 @@
                 resultDiv.textContent = 'Error: ' + error.message;
             }
         }
+
+
+
+        async function addUser() {
+            try {
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+
+            if (!name || !email) {
+                resultDiv.textContent = 'Error: name and email are required';
+                return;
+            }
+
+            const response = await fetch('api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                resultDiv.textContent = 'Error: ' + (data.error || response.statusText);
+                return;
+            }
+
+            resultDiv.textContent = 'User added: ' + JSON.stringify(data, null, 2);
+
+            // Tyhjennä kentät ja hae lista uudelleen
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            await getUsers();
+
+        } catch (error) {
+            resultDiv.textContent = 'Error: ' + error.message;
+        }
+    }
+
     </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import mysql.connector
 import os
 
@@ -28,6 +28,35 @@ def get_users():
         return jsonify(users)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/api/users', methods=['POST'])
+def add_user():
+    try:
+        data = request.get_json(silent=True) or {}
+        name = (data.get("name") or "").strip()
+        email = (data.get("email") or "").strip()
+
+        if not name or not email:
+            return jsonify({"error": "name and email are required"}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO users (name, email) VALUES (%s, %s)",
+            (name, email)
+        )
+        conn.commit()
+        new_id = cursor.lastrowid
+        cursor.close()
+        conn.close()
+
+        return jsonify({"id": new_id, "name": name, "email": email}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
 @app.route('/api/init-db')
 def init_db():
